@@ -1,0 +1,28 @@
+# Logs
+logs
+*.log
+pnpm-debug.log*
+
+# testing
+coverage
+
+# build
+dist
+build
+
+# dev
+node_modules
+*.local
+public/mockServiceWorker.js
+
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
