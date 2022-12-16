@@ -1,31 +1,135 @@
-import { useState } from 'react';
+import type { ComponentPropsWithoutRef, MouseEvent } from 'react';
+import { forwardRef, useEffect, useReducer, useRef, useState } from 'react';
 
 import './App.css';
-import reactLogo from './assets/react.svg';
+
+import type { CreateRecorderEvent } from './with-recorder-event';
+import { extractFns, withLogCallbacksCall, withRecorderEvents } from './with-recorder-event';
+
+type ButtonProps = ComponentPropsWithoutRef<'button'> & {
+  createRecorderEvent?: CreateRecorderEvent;
+};
+
+const ForwardedButton = forwardRef<HTMLButtonElement, ButtonProps>(function Button(
+  { createRecorderEvent, onClick, ...props },
+  ref,
+) {
+  const handleClick = (event: MouseEvent<HTMLButtonElement>) => {
+    createRecorderEvent?.();
+    onClick?.(event);
+  };
+
+  return <button type="button" onClick={handleClick} ref={ref} {...props} />;
+});
+
+function RegularButton({ createRecorderEvent, onClick, ...props }: ButtonProps) {
+  const handleClick = (event: MouseEvent<HTMLButtonElement>) => {
+    createRecorderEvent?.();
+    onClick?.(event);
+  };
+
+  return <button type="button" onClick={handleClick} {...props} />;
+}
+
+const AnalyticalButton = withRecorderEvents(ForwardedButton);
+const AnalyticalButtonRegular = withRecorderEvents(RegularButton, {
+  onClick: {
+    test: 1,
+  },
+});
+
+function createTicker(ms: number) {
+  const ticker = {
+    timer: null,
+    subscribers: new Set(),
+    state: {
+      current: 0,
+    },
+    setState: (updater) => {
+      ticker.state = updater(ticker.state);
+      for (const currentSubscriber of ticker.subscribers.values()) {
+        currentSubscriber.notify();
+      }
+    },
+    subscribe: (subscriber) => {
+      ticker.subscribers.add(subscriber);
+
+      return () => {
+        ticker.subscribers.delete(subscriber);
+      };
+    },
+    run: () => {
+      if (ticker.timer) {
+        clearInterval(ticker.timer);
+      }
+
+      ticker.timer = setInterval(
+        () => ticker.setState((prev) => ({ ...prev, current: prev.current + 1 })),
+        ms,
+      );
+    },
+  };
+
+  return ticker;
+}
+
+function createTickerObserver(ms: number) {
+  const ticker = createTicker(ms);
+
+  const observer = {
+    run: () => {
+      ticker.run();
+    },
+    notify: () => {},
+    subscribe: (subscriber) => {
+      observer.notify = subscriber;
+
+      const dispose = ticker.subscribe(observer);
+
+      observer.run();
+
+      return () => {
+        dispose();
+        observer.notify = () => {};
+      };
+    },
+    getState: () => ticker.state,
+  };
+
+  return observer;
+}
+
+type Observer = ReturnType<typeof createTickerObserver>;
+
+function useTicker(ms: number) {
+  const tickerRef = useRef<Observer>();
+  const [_, rerender] = useReducer((state) => state + 1, 0);
+
+  if (!tickerRef.current) {
+    tickerRef.current = createTickerObserver(ms);
+  }
+
+  useEffect(() => {
+    return tickerRef.current!.subscribe(rerender);
+  }, [rerender]);
+
+  return tickerRef.current.getState();
+}
 
 function App() {
   const [count, setCount] = useState(0);
+  const buttonRef = useRef<HTMLButtonElement>(null);
+  // const { current: tickerValue } = useTicker(1000);
 
   return (
     <div className="App">
-      <div>
-        <a href="https://vitejs.dev" target="_blank" rel="noreferrer">
-          <img src="/vite.svg" className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://reactjs.org" target="_blank" rel="noreferrer">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
       <div className="card">
-        <button type="button" onClick={() => setCount((c) => c + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
+        {/*<h1>Ticker: {tickerValue}</h1>*/}
+        <AnalyticalButton ref={buttonRef}>count is {count}</AnalyticalButton>
+        <AnalyticalButtonRegular onClick={() => console.log('Regular Click')}>
+          Regular
+        </AnalyticalButtonRegular>
       </div>
-      <p className="read-the-docs">Click on the Vite and React logos to learn more</p>
     </div>
   );
 }
