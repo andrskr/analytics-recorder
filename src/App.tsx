@@ -4,7 +4,12 @@ import { forwardRef, useEffect, useReducer, useRef, useState } from 'react';
 import './App.css';
 
 import type { CreateRecorderEvent } from './with-recorder-event';
-import { extractFns, withLogCallbacksCall, withRecorderEvents } from './with-recorder-event';
+import {
+  extractFns,
+  inject,
+  withLogCallbacksCall,
+  withRecorderEvents,
+} from './with-recorder-event';
 
 type ButtonProps = ComponentPropsWithoutRef<'button'> & {
   createRecorderEvent?: CreateRecorderEvent;
@@ -34,8 +39,12 @@ function RegularButton({ createRecorderEvent, onClick, ...props }: ButtonProps) 
 const AnalyticalButton = withRecorderEvents(ForwardedButton);
 const AnalyticalButtonRegular = withRecorderEvents(RegularButton, {
   onClick: {
-    test: 1,
+    test: 'test',
   },
+});
+const LogButton = withLogCallbacksCall(RegularButton);
+const Injected = inject(RegularButton, {
+  onClick: () => {},
 });
 
 function createTicker(ms: number) {
@@ -125,10 +134,14 @@ function App() {
     <div className="App">
       <div className="card">
         {/*<h1>Ticker: {tickerValue}</h1>*/}
-        <AnalyticalButton ref={buttonRef}>count is {count}</AnalyticalButton>
-        <AnalyticalButtonRegular onClick={() => console.log('Regular Click')}>
+        <AnalyticalButton onClick={(event) => console.log(event)} ref={buttonRef}>
+          count is {count}
+        </AnalyticalButton>
+        <AnalyticalButtonRegular onClick={(_, recorderEvent) => console.log(recorderEvent)}>
           Regular
         </AnalyticalButtonRegular>
+        <LogButton>Log</LogButton>
+        <Injected>Injected</Injected>
       </div>
     </div>
   );

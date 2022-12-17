@@ -6,6 +6,9 @@
 //   action: 'clicked',
 //   componentName: 'my-button',
 // }
+// 4 case
+// onClick: (create, props) => create({ action: 'clicked', foo: props.foo })
+
 import type { RefAttributes, ComponentProps } from 'react';
 import React, { forwardRef, type ComponentType, useMemo } from 'react';
 
@@ -33,8 +36,15 @@ type ExtractKeysByValue<T, TExtract> = {
 type SupportedKeysToEnhance<T> = keyof ExtractKeysByValue<T, AnyFunction>;
 type EnhancerHandler<TProps> = RecorderEventPayload | RecorderEventCallback<TProps>;
 
-type GetEnhancedProps<TProps, TEnhanceKeys extends keyof TProps> = {
-  [TEnhancerName in TEnhanceKeys]: TProps[TEnhancerName];
+type AddParams<TFn extends AnyFunction, TParams extends [...args: unknown[]]> = (
+  ...args: [...Parameters<TFn>, ...TParams]
+) => ReturnType<TFn>;
+type AddRecorderEventIfFunction<T> = T extends AnyFunction
+  ? AddParams<T, [recorderEvent: RecorderEvent]>
+  : T;
+
+type GetEnhancedProps<TProps, TEnhanceKeys extends SupportedKeysToEnhance<TProps>> = {
+  [TEnhancerName in TEnhanceKeys]: AddRecorderEventIfFunction<TProps[TEnhancerName]>;
 };
 
 function enhance<TProps, TEnhanceKeys extends SupportedKeysToEnhance<TProps>>(
@@ -58,30 +68,13 @@ function enhance<TProps, TEnhanceKeys extends SupportedKeysToEnhance<TProps>>(
 
     acc[currentEnhancerName as TEnhanceKeys] = new Proxy(propsValue, {
       apply(targetFn, thisArg, argArray) {
-        console.log({ [currentEnhancerName]: recorderEvent });
-
-        return Reflect.apply(targetFn, thisArg, argArray);
+        return Reflect.apply(targetFn, thisArg, [...argArray, recorderEvent]);
       },
-    });
+    }) as AddRecorderEventIfFunction<typeof propsValue>;
 
     return acc;
-  }, {} as GetEnhancedProps<TProps, keyof typeof enhancers>);
+  }, {} as GetEnhancedProps<TProps, TEnhanceKeys>);
 }
-
-const res = enhance(
-  () => new RecorderEvent({ test: 'test' }),
-  { foo: 1, bar: 2, test: () => 3, test1: () => 4, x: 'x' as any },
-  {
-    test: (create, props) => {
-      return create({ action: 'test', foo: props.foo });
-    },
-    test1: {
-      payload: true,
-    },
-  },
-);
-
-console.log(res);
 
 function useRecorderEvents() {
   return function createRecorderEvent(payload: RecorderEventPayload) {
@@ -89,10 +82,10 @@ function useRecorderEvents() {
   };
 }
 
-function useRecorderEnhanceProps<TProps, TEnhanceKeys extends SupportedKeysToEnhance<TProps>>(
-  props: TProps,
-  enhancers?: Record<TEnhanceKeys, EnhancerHandler<TProps>>,
-) {
+function useRecorderEnhanceProps<
+  TProps,
+  TEnhanceKeys extends SupportedKeysToEnhance<TProps> = never,
+>(props: TProps, enhancers?: Record<TEnhanceKeys, EnhancerHandler<TProps>>) {
   const createRecorderEvent = useRecorderEvents();
 
   return useMemo(() => {
@@ -106,7 +99,7 @@ function useRecorderEnhanceProps<TProps, TEnhanceKeys extends SupportedKeysToEnh
 
 export function withRecorderEvents<
   TProps,
-  TEnhanceKeys extends SupportedKeysToEnhance<TProps>,
+  TEnhanceKeys extends SupportedKeysToEnhance<TProps> = never,
   TRef = never,
 >(
   WrappedComponent: ComponentType<TProps & RefAttributes<TRef>>,
@@ -116,14 +109,18 @@ export function withRecorderEvents<
 
   const ForwardedWrapper = forwardRef<
     TRef,
-    Omit<ComponentProps<typeof WrappedComponent>, keyof WithRecorderEventsInjectedProps>
+    Omit<
+      ComponentProps<typeof WrappedComponent>,
+      keyof WithRecorderEventsInjectedProps | TEnhanceKeys
+    > &
+      GetEnhancedProps<TProps, TEnhanceKeys>
   >(function Wrapper(props, ref) {
     const enhancedProps = useRecorderEnhanceProps(props as TProps, enhancers);
 
     return (
       <WrappedComponent
-        {...(props as ComponentProps<typeof WrappedComponent>)}
-        {...(enhancedProps as ComponentProps<typeof WrappedComponent>)}
+        {...(props as TProps)}
+        {...enhancedProps}
         ref={ref}
         createRecorderEvent={() => new RecorderEvent({ direct: true })}
       />
@@ -133,37 +130,4 @@ export function withRecorderEvents<
   ForwardedWrapper.displayName = `withRecorderEvents(${displayName})`;
 
   return ForwardedWrapper;
-}
-
-export function withLogCallbacksCall<TProps extends Record<string, unknown>>(
-  WrappedComponent: ComponentType<TProps>,
-) {
-  const displayName = WrappedComponent.displayName || WrappedComponent.name || 'Component';
-
-  function Wrapper(props: TProps) {
-    const enhancedProps = new Proxy(
-      { ...props },
-      {
-        get(target, prop) {
-          if (typeof target[prop as string] !== 'function') {
-            return Reflect.get(target, prop);
-          }
-
-          return new Proxy(target[prop as string] as AnyFunction, {
-            apply(targetFn, thisArg, argArray) {
-              console.log({ [prop]: argArray });
-
-              return Reflect.apply(targetFn, thisArg, argArray);
-            },
-          });
-        },
-      },
-    );
-
-    return <WrappedComponent {...enhancedProps} />;
-  }
-
-  Wrapper.displayName = `withLogCallbacksCall(${displayName})`;
-
-  return Wrapper;
 }
