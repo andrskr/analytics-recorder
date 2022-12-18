@@ -1,7 +1,42 @@
+import type { ReactNode } from 'react';
+import { createContext, useCallback, useContext } from 'react';
+
 import type { RecorderEvent } from './recorder-event';
-import { treePropCollector } from './tree-prop-collector';
 
 type RecorderEventHandler = (recorderEvent: RecorderEvent) => void;
 
-export const [RecorderEventsListener, useGetEventListeners] =
-  treePropCollector<RecorderEventHandler>('RecorderEventListenerContext');
+type RecorderEventsListenerProps = {
+  children: ReactNode;
+  onEvent: RecorderEventHandler;
+};
+
+export type GetRecorderEventHandlers = () => RecorderEventHandler[];
+
+const RecorderEventListenersContext = createContext<GetRecorderEventHandlers | undefined>(
+  undefined,
+);
+RecorderEventListenersContext.displayName = 'RecorderEventListenersContext';
+
+export function useGetEventListeners() {
+  return useContext(RecorderEventListenersContext);
+}
+
+export function RecorderEventsListener({ children, onEvent }: RecorderEventsListenerProps) {
+  const parentGetListeners = useGetEventListeners();
+
+  const getListeners = useCallback(() => {
+    if (typeof parentGetListeners === 'function') {
+      const parentListeners = parentGetListeners();
+
+      return [...parentListeners, onEvent];
+    }
+
+    return [onEvent];
+  }, [onEvent, parentGetListeners]);
+
+  return (
+    <RecorderEventListenersContext.Provider value={getListeners}>
+      {children}
+    </RecorderEventListenersContext.Provider>
+  );
+}

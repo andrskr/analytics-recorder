@@ -123,7 +123,7 @@ function App() {
   const eventContext = useMemo(() => ({ container: 'app' }), []);
 
   return (
-    <RecorderEventsListener value={handleRecorderEvents}>
+    <RecorderEventsListener onEvent={handleRecorderEvents}>
       <RecorderEventsContext value={eventContext}>
         <div className="App">
           <div className="card">
