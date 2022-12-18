@@ -2,17 +2,22 @@ import type { ComponentPropsWithoutRef } from 'react';
 import { forwardRef, useCallback, useEffect, useReducer, useRef, useState } from 'react';
 
 import './App.css';
+import type { RecorderEvent } from './recorder-event';
 import { RecorderEventsListener } from './recorder-events-listener';
 import { withRecorderEvents } from './with-recorder-events';
-import { RecorderEvent } from './recorder-event';
 
-type ButtonProps = ComponentPropsWithoutRef<'button'>;
+type ButtonProps = ComponentPropsWithoutRef<'button'> & {
+  createRecorderEvent: RecorderEvent;
+};
 
-const ForwardedButton = forwardRef<HTMLButtonElement, ButtonProps>(function Button(props, ref) {
+const ForwardedButton = forwardRef<HTMLButtonElement, ButtonProps>(function Button(
+  { createRecorderEvent: _, ...props },
+  ref,
+) {
   return <button type="button" ref={ref} {...props} />;
 });
 
-function RegularButton(props: ButtonProps) {
+function RegularButton({ createRecorderEvent: _, ...props }: ButtonProps) {
   return <button type="button" {...props} />;
 }
 
