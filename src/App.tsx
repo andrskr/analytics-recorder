@@ -5,6 +5,7 @@ import './App.css';
 import type { RecorderEvent } from './recorder-event';
 import { RecorderEventsContext } from './recorder-events-context';
 import { RecorderEventsListener } from './recorder-events-listener';
+import { withEventsContext } from './with-events-context';
 import { withRecorderEvents } from './with-recorder-events';
 
 type ButtonProps = ComponentPropsWithoutRef<'button'> & {
@@ -22,10 +23,16 @@ function RegularButton({ createRecorderEvent: _, ...props }: ButtonProps) {
   return <button type="button" {...props} />;
 }
 
-const AnalyticalButton = withRecorderEvents(ForwardedButton);
-const AnalyticalButtonRegular = withRecorderEvents(RegularButton, {
-  onClick: (create, props) => create({ action: 'click', type: props.type }),
+const AnalyticalButton = withRecorderEvents(ForwardedButton, {
+  onClick: {
+    action: 'click',
+    type: 'forwarded',
+  },
 });
+const AnalyticalButtonRegular = withRecorderEvents(RegularButton, {
+  onClick: (create) => create({ action: 'click', type: 'regular' }),
+});
+const ContextualAnalyticalButton = withEventsContext({ withEventsContext: true })(AnalyticalButton);
 
 function createTicker(ms: number) {
   const ticker = {
@@ -110,9 +117,12 @@ function App() {
   const buttonRef = useRef<HTMLButtonElement>(null);
   // const { current: tickerValue } = useTicker(1000);
 
-  const handleIncrement = useCallback(() => setCount((c) => c + 1), []);
-  const handleAnalyticalEvent = useCallback((_: unknown, recorderEvent: RecorderEvent) => {
+  const handleIncrement = useCallback((_: unknown, recorderEvent: RecorderEvent) => {
     console.log(recorderEvent);
+    setCount((c) => c + 1);
+  }, []);
+
+  const handleAnalyticalEvent = useCallback((_: unknown, recorderEvent: RecorderEvent) => {
     recorderEvent.trigger();
   }, []);
 
@@ -134,6 +144,9 @@ function App() {
             <AnalyticalButtonRegular onClick={handleAnalyticalEvent}>
               Regular
             </AnalyticalButtonRegular>
+            <ContextualAnalyticalButton onClick={handleAnalyticalEvent}>
+              Contextual
+            </ContextualAnalyticalButton>
           </div>
         </div>
       </RecorderEventsContext>

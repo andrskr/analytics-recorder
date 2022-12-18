@@ -1,5 +1,5 @@
 import type { RefAttributes, ComponentProps } from 'react';
-import React, { forwardRef, type ComponentType, useState } from 'react';
+import { forwardRef, type ComponentType, useState } from 'react';
 
 import type { RecorderEventPayload, RecorderEvent } from './recorder-event';
 import type { RecorderEvents } from './use-recorder-events';
