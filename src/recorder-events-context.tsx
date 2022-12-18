@@ -1,69 +1,34 @@
 import type { ReactNode } from 'react';
-import { createContext, useContext, useLayoutEffect, useState } from 'react';
+import { createContext, useCallback, useContext } from 'react';
 
-export type RecorderEventContextValue = Record<string, unknown>;
+export type ContextValue = Record<string, unknown>;
 
 type RecorderEventsContextProps = {
   children: ReactNode;
-  value: RecorderEventContextValue;
+  value: ContextValue;
 };
 
-function createEventsContext() {
-  const context = new Set<RecorderEventContextValue>();
+export type GetContextValues = () => ContextValue[];
 
-  const addValue = (value: RecorderEventContextValue) => {
-    context.add(value);
+const Context = createContext<GetContextValues | undefined>(undefined);
+Context.displayName = 'RecorderEventsContext';
 
-    return () => {
-      context.delete(value);
-    };
-  };
-
-  return { context, addValue };
-}
-
-type RecorderEventsContext = ReturnType<typeof createEventsContext>;
-
-const EventsContext = createContext<RecorderEventsContext | undefined>(undefined);
-
-export function useEventsContext() {
-  return useContext(EventsContext);
-}
-
-type ContextProviderProps = {
-  children: ReactNode;
-};
-
-function ContextProvider({ children }: ContextProviderProps) {
-  const [context] = useState(() => createEventsContext());
-
-  return <EventsContext.Provider value={context}>{children}</EventsContext.Provider>;
-}
-
-function ContextSubscriber({ value, children }: RecorderEventsContextProps) {
-  const context = useEventsContext();
-
-  if (typeof context === 'undefined') {
-    throw new Error('ContextSubscriber must be used within EventsContext.Provider');
-  }
-
-  useLayoutEffect(() => {
-    return context.addValue(value);
-  }, [context, value]);
-
-  return children as JSX.Element;
+export function useRecorderEventContextValues() {
+  return useContext(Context);
 }
 
 export function RecorderEventsContext({ value, children }: RecorderEventsContextProps) {
-  const context = useEventsContext();
+  const parentValuesGetter = useRecorderEventContextValues();
 
-  if (typeof context === 'undefined') {
-    return (
-      <ContextProvider>
-        <ContextSubscriber value={value}>{children}</ContextSubscriber>
-      </ContextProvider>
-    );
-  }
+  const getListeners = useCallback(() => {
+    if (typeof parentValuesGetter === 'function') {
+      const parentValues = parentValuesGetter();
 
-  return <ContextSubscriber value={value}>{children}</ContextSubscriber>;
+      return [...parentValues, value];
+    }
+
+    return [value];
+  }, [value, parentValuesGetter]);
+
+  return <Context.Provider value={getListeners}>{children}</Context.Provider>;
 }

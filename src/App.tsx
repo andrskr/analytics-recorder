@@ -1,8 +1,9 @@
 import type { ComponentPropsWithoutRef } from 'react';
-import { forwardRef, useCallback, useEffect, useReducer, useRef, useState } from 'react';
+import { forwardRef, useCallback, useEffect, useMemo, useReducer, useRef, useState } from 'react';
 
 import './App.css';
 import type { RecorderEvent } from './recorder-event';
+import { RecorderEventsContext } from './recorder-events-context';
 import { RecorderEventsListener } from './recorder-events-listener';
 import { withRecorderEvents } from './with-recorder-events';
 
@@ -121,19 +122,23 @@ function App() {
     console.log('Listener', recorderEvent);
   }, []);
 
+  const eventContext = useMemo(() => ({ container: 'app' }), []);
+
   return (
     <RecorderEventsListener onEvent={handleRecorderEvents}>
-      {/* <RecorderEventsContext value={eventContext}> */}
-      <div className="App">
-        <div className="card">
-          {/* <h1>Ticker: {tickerValue}</h1> */}
-          <AnalyticalButton onClick={handleIncrement} ref={buttonRef}>
-            count is {count}
-          </AnalyticalButton>
-          <AnalyticalButtonRegular onClick={handleAnalyticalEvent}>Regular</AnalyticalButtonRegular>
+      <RecorderEventsContext value={eventContext}>
+        <div className="App">
+          <div className="card">
+            {/* <h1>Ticker: {tickerValue}</h1> */}
+            <AnalyticalButton onClick={handleIncrement} ref={buttonRef}>
+              count is {count}
+            </AnalyticalButton>
+            <AnalyticalButtonRegular onClick={handleAnalyticalEvent}>
+              Regular
+            </AnalyticalButtonRegular>
+          </div>
         </div>
-      </div>
-      {/* </RecorderEventsContext> */}
+      </RecorderEventsContext>
     </RecorderEventsListener>
   );
 }
