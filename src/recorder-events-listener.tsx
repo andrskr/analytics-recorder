@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
-import { createContext, useCallback, useContext, useId, useLayoutEffect, useState } from 'react';
+import { createContext, useContext, useLayoutEffect, useState } from 'react';
 
-import type { RecorderEvent } from './with-recorder-event';
+import type { RecorderEvent } from './recorder-event';
 
 type RecorderEventsHandler = (recorderEvent: RecorderEvent) => void;
 

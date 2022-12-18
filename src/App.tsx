@@ -1,35 +1,19 @@
-import type { ComponentPropsWithoutRef, MouseEvent } from 'react';
+import type { ComponentPropsWithoutRef } from 'react';
 import { forwardRef, useCallback, useEffect, useReducer, useRef, useState } from 'react';
 
 import './App.css';
 import { RecorderEventsListener } from './recorder-events-listener';
-import type { CreateRecorderEvent, RecorderEvent } from './with-recorder-event';
-import { withRecorderEvents } from './with-recorder-event';
-import { RecorderEventsContext } from './recorder-events-context';
+import { withRecorderEvents } from './with-recorder-events';
+import { RecorderEvent } from './recorder-event';
 
-type ButtonProps = ComponentPropsWithoutRef<'button'> & {
-  createRecorderEvent?: CreateRecorderEvent;
-};
+type ButtonProps = ComponentPropsWithoutRef<'button'>;
 
-const ForwardedButton = forwardRef<HTMLButtonElement, ButtonProps>(function Button(
-  { createRecorderEvent, onClick, ...props },
-  ref,
-) {
-  const handleClick = (event: MouseEvent<HTMLButtonElement>) => {
-    createRecorderEvent?.();
-    onClick?.(event);
-  };
-
-  return <button type="button" onClick={handleClick} ref={ref} {...props} />;
+const ForwardedButton = forwardRef<HTMLButtonElement, ButtonProps>(function Button(props, ref) {
+  return <button type="button" ref={ref} {...props} />;
 });
 
-function RegularButton({ createRecorderEvent, onClick, ...props }: ButtonProps) {
-  const handleClick = (event: MouseEvent<HTMLButtonElement>) => {
-    createRecorderEvent?.();
-    onClick?.(event);
-  };
-
-  return <button type="button" onClick={handleClick} {...props} />;
+function RegularButton(props: ButtonProps) {
+  return <button type="button" {...props} />;
 }
 
 const AnalyticalButton = withRecorderEvents(ForwardedButton);
@@ -128,49 +112,23 @@ function App() {
     recorderEvent.trigger();
   }, []);
 
-  const handleRecorderEvents = (recorderEvent: RecorderEvent) => {
+  const handleRecorderEvents = useCallback((recorderEvent: RecorderEvent) => {
     console.log('Listener', recorderEvent);
-  };
-
-  const eventContext = {
-    container: 'app',
-  };
-
-  // return (
-  //   <div className="App">
-  //     <div className="card">
-  //       {/* <h1>Ticker: {tickerValue}</h1> */}
-  //       <AnalyticalButton onClick={handleIncrement} ref={buttonRef}>
-  //         count is {count}
-  //       </AnalyticalButton>
-  //       <AnalyticalButtonRegular onClick={handleAnalyticalEvent}>Regular</AnalyticalButtonRegular>
-  //     </div>
-  //   </div>
-  // );
+  }, []);
 
   return (
     <RecorderEventsListener onEvent={handleRecorderEvents}>
-      <RecorderEventsListener onEvent={handleRecorderEvents}>
-        <RecorderEventsListener onEvent={handleRecorderEvents}>
-          <RecorderEventsContext value={eventContext}>
-            <RecorderEventsContext value={eventContext}>
-              <RecorderEventsContext value={{ containerPosition: 'center' }}>
-                <div className="App">
-                  <div className="card">
-                    {/* <h1>Ticker: {tickerValue}</h1> */}
-                    <AnalyticalButton onClick={handleIncrement} ref={buttonRef}>
-                      count is {count}
-                    </AnalyticalButton>
-                    <AnalyticalButtonRegular onClick={handleAnalyticalEvent}>
-                      Regular
-                    </AnalyticalButtonRegular>
-                  </div>
-                </div>
-              </RecorderEventsContext>
-            </RecorderEventsContext>
-          </RecorderEventsContext>
-        </RecorderEventsListener>
-      </RecorderEventsListener>
+      {/* <RecorderEventsContext value={eventContext}> */}
+      <div className="App">
+        <div className="card">
+          {/* <h1>Ticker: {tickerValue}</h1> */}
+          <AnalyticalButton onClick={handleIncrement} ref={buttonRef}>
+            count is {count}
+          </AnalyticalButton>
+          <AnalyticalButtonRegular onClick={handleAnalyticalEvent}>Regular</AnalyticalButtonRegular>
+        </div>
+      </div>
+      {/* </RecorderEventsContext> */}
     </RecorderEventsListener>
   );
 }

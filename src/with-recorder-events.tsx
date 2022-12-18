@@ -1,43 +1,15 @@
-// 1 case
-// withRecorderEvents()(MyButton) -> injects createRecorderEvent prop
-// 2 case refs
-// 3rd case
-// onClick: {
-//   action: 'clicked',
-//   componentName: 'my-button',
-// }
-// 4 case
-// onClick: (create, props) => create({ action: 'clicked', foo: props.foo })
-
 import type { RefAttributes, ComponentProps } from 'react';
-import React, { forwardRef, type ComponentType, useState, useCallback } from 'react';
+import React, { forwardRef, type ComponentType, useState } from 'react';
 
-import type { RecorderEventListeners } from './recorder-events-listener';
-import { useRecorderEventListeners } from './recorder-events-listener';
-import { RecorderEventContextValue, useEventsContext } from './recorder-events-context';
-
-export type CreateRecorderEvent = () => void;
-
-export class RecorderEvent {
-  constructor(
-    public payload: RecorderEventPayload,
-    private listeners?: RecorderEventListeners,
-    public context?: Set<RecorderEventContextValue>,
-  ) {}
-
-  trigger() {
-    this.listeners?.emit(this);
-  }
-}
+import type { RecorderEventPayload, RecorderEvent } from './recorder-event';
+import type { RecorderEvents } from './use-recorder-events';
+import { useRecorderEvents } from './use-recorder-events';
 
 type WithRecorderEventsInjectedProps = {
-  createRecorderEvent: CreateRecorderEvent;
+  createRecorderEvent: RecorderEvents;
 };
 
-type RecorderEventPayload = Record<string, unknown>;
-type RecorderEventCreator = (payload: RecorderEventPayload) => RecorderEvent;
-
-type RecorderEventCallback<TProps> = (create: RecorderEventCreator, props: TProps) => RecorderEvent;
+type RecorderEventCallback<TProps> = (create: RecorderEvents, props: TProps) => RecorderEvent;
 
 type AnyFunction = (...args: any[]) => any;
 
@@ -59,48 +31,7 @@ type GetEnhancedProps<TProps, TEnhanceKeys extends SupportedKeysToEnhance<TProps
   [TEnhancerName in TEnhanceKeys]: AddRecorderEventIfFunction<TProps[TEnhancerName]>;
 };
 
-function enhance_<TProps, TEnhanceKeys extends SupportedKeysToEnhance<TProps>>(
-  createRecorderEvent: RecorderEventCreator,
-  props: TProps,
-  enhancers: Record<TEnhanceKeys, EnhancerHandler<TProps>>,
-) {
-  return Object.keys(enhancers).reduce((acc, currentEnhancerName) => {
-    const propsValue = props[currentEnhancerName as TEnhanceKeys];
-
-    if (typeof propsValue !== 'function') {
-      return acc;
-    }
-
-    const currentEnhancerHandler = enhancers[currentEnhancerName as TEnhanceKeys];
-
-    const recorderEvent =
-      typeof currentEnhancerHandler === 'function'
-        ? currentEnhancerHandler(createRecorderEvent, props)
-        : createRecorderEvent(currentEnhancerHandler);
-
-    acc[currentEnhancerName as TEnhanceKeys] = new Proxy(propsValue, {
-      apply(targetFn, thisArg, argArray) {
-        return Reflect.apply(targetFn, thisArg, [...argArray, recorderEvent]);
-      },
-    }) as AddRecorderEventIfFunction<typeof propsValue>;
-
-    return acc;
-  }, {} as GetEnhancedProps<TProps, TEnhanceKeys>);
-}
-
-function useCreateRecorderEvents() {
-  const listeners = useRecorderEventListeners();
-  const eventsContext = useEventsContext();
-
-  return useCallback(
-    function createRecorderEvent(payload: RecorderEventPayload) {
-      return new RecorderEvent(payload, listeners, eventsContext?.context);
-    },
-    [listeners, eventsContext],
-  );
-}
-
-function createPropsEnhancer(createRecorderEvent: RecorderEventCreator) {
+function createPropsEnhancer(createRecorderEvent: RecorderEvents) {
   const enhancedProps = new WeakMap();
 
   return function enhance<TProps, TEnhanceKeys extends SupportedKeysToEnhance<TProps>>(
@@ -141,7 +72,7 @@ function createPropsEnhancer(createRecorderEvent: RecorderEventCreator) {
   };
 }
 
-function usePropsEnhancer(createRecorderEvent: RecorderEventCreator) {
+function usePropsEnhancer(createRecorderEvent: RecorderEvents) {
   const [enhance] = useState(() => createPropsEnhancer(createRecorderEvent));
 
   return enhance;
@@ -151,7 +82,7 @@ function useRecorderEnhanceProps<
   TProps,
   TEnhanceKeys extends SupportedKeysToEnhance<TProps> = never,
 >(
-  createRecorderEvent: RecorderEventCreator,
+  createRecorderEvent: RecorderEvents,
   props: TProps,
   enhancers?: Record<TEnhanceKeys, EnhancerHandler<TProps>>,
 ) {
@@ -178,7 +109,7 @@ export function withRecorderEvents<
     > &
       GetEnhancedProps<TProps, TEnhanceKeys>
   >(function Wrapper(props, ref) {
-    const createRecorderEvent = useCreateRecorderEvents();
+    const createRecorderEvent = useRecorderEvents();
     const enhancedProps = useRecorderEnhanceProps(createRecorderEvent, props as TProps, enhancers);
 
     return (
