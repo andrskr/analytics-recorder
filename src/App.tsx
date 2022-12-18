@@ -24,9 +24,7 @@ function RegularButton({ createRecorderEvent: _, ...props }: ButtonProps) {
 
 const AnalyticalButton = withRecorderEvents(ForwardedButton);
 const AnalyticalButtonRegular = withRecorderEvents(RegularButton, {
-  onClick: {
-    test: 'test',
-  },
+  onClick: (create, props) => create({ action: 'click', type: props.type }),
 });
 
 function createTicker(ms: number) {
@@ -125,7 +123,7 @@ function App() {
   const eventContext = useMemo(() => ({ container: 'app' }), []);
 
   return (
-    <RecorderEventsListener onEvent={handleRecorderEvents}>
+    <RecorderEventsListener value={handleRecorderEvents}>
       <RecorderEventsContext value={eventContext}>
         <div className="App">
           <div className="card">

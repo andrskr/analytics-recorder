@@ -2,12 +2,12 @@ import { useCallback } from 'react';
 
 import type { RecorderEventPayload } from './recorder-event';
 import { RecorderEvent } from './recorder-event';
-import { useRecorderEventContextValues } from './recorder-events-context';
-import { useRecorderEventListeners } from './recorder-events-listener';
+import { useGetContextValues } from './recorder-events-context';
+import { useGetEventListeners } from './recorder-events-listener';
 
 export function useRecorderEvents() {
-  const getListeners = useRecorderEventListeners();
-  const getContextValues = useRecorderEventContextValues();
+  const getListeners = useGetEventListeners();
+  const getContextValues = useGetContextValues();
 
   return useCallback(
     function createRecorderEvent(payload: RecorderEventPayload) {
