@@ -11,11 +11,16 @@
 
 import type { RefAttributes, ComponentProps } from 'react';
 import React, { forwardRef, type ComponentType, useMemo, useState, useCallback } from 'react';
+import { RecorderEventListeners, useRecorderEventListeners } from './recorder-events-listener';
 
 export type CreateRecorderEvent = () => void;
 
 export class RecorderEvent {
-  constructor(public payload: RecorderEventPayload) {}
+  constructor(public payload: RecorderEventPayload, private listeners?: RecorderEventListeners) {}
+
+  trigger() {
+    this.listeners?.emit(this);
+  }
 }
 
 type WithRecorderEventsInjectedProps = {
@@ -76,10 +81,15 @@ function enhance_<TProps, TEnhanceKeys extends SupportedKeysToEnhance<TProps>>(
   }, {} as GetEnhancedProps<TProps, TEnhanceKeys>);
 }
 
-function useRecorderEvents() {
-  return useCallback(function createRecorderEvent(payload: RecorderEventPayload) {
-    return new RecorderEvent(payload);
-  }, []);
+function useCreateRecorderEvents() {
+  const listeners = useRecorderEventListeners();
+
+  return useCallback(
+    function createRecorderEvent(payload: RecorderEventPayload) {
+      return new RecorderEvent(payload, listeners);
+    },
+    [listeners],
+  );
 }
 
 function createPropsEnhancer(createRecorderEvent: RecorderEventCreator) {
@@ -160,7 +170,7 @@ export function withRecorderEvents<
     > &
       GetEnhancedProps<TProps, TEnhanceKeys>
   >(function Wrapper(props, ref) {
-    const createRecorderEvent = useRecorderEvents();
+    const createRecorderEvent = useCreateRecorderEvents();
     const enhancedProps = useRecorderEnhanceProps(createRecorderEvent, props as TProps, enhancers);
 
     return (

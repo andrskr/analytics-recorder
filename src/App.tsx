@@ -4,6 +4,7 @@ import { forwardRef, useCallback, useEffect, useReducer, useRef, useState } from
 import './App.css';
 import type { CreateRecorderEvent } from './with-recorder-event';
 import { RecorderEvent, withRecorderEvents } from './with-recorder-event';
+import { RecorderEventsListener } from './recorder-events-listener';
 
 type ButtonProps = ComponentPropsWithoutRef<'button'> & {
   createRecorderEvent?: CreateRecorderEvent;
@@ -121,10 +122,14 @@ function App() {
   // const { current: tickerValue } = useTicker(1000);
 
   const handleIncrement = useCallback(() => setCount((c) => c + 1), []);
-  const handleAnalyticalEvent = useCallback(
-    (_: unknown, recorderEvent: RecorderEvent) => console.log(recorderEvent),
-    [],
-  );
+  const handleAnalyticalEvent = useCallback((_: unknown, recorderEvent: RecorderEvent) => {
+    console.log(recorderEvent);
+    recorderEvent.trigger();
+  }, []);
+
+  // const handleRecorderEvents = (recorderEvent: RecorderEvent) => {
+  //   console.log('Listener', recorderEvent);
+  // };
 
   return (
     <div className="App">
@@ -137,6 +142,26 @@ function App() {
       </div>
     </div>
   );
+
+  // return (
+  //   <RecorderEventsListener onEvent={handleRecorderEvents}>
+  //     <RecorderEventsListener onEvent={handleRecorderEvents}>
+  //       <RecorderEventsListener onEvent={handleRecorderEvents}>
+  //         <div className="App">
+  //           <div className="card">
+  //             {/* <h1>Ticker: {tickerValue}</h1> */}
+  //             <AnalyticalButton onClick={handleIncrement} ref={buttonRef}>
+  //               count is {count}
+  //             </AnalyticalButton>
+  //             <AnalyticalButtonRegular onClick={handleAnalyticalEvent}>
+  //               Regular
+  //             </AnalyticalButtonRegular>
+  //           </div>
+  //         </div>
+  //       </RecorderEventsListener>
+  //     </RecorderEventsListener>
+  //   </RecorderEventsListener>
+  // );
 }
 
 export default App;
