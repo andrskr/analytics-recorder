@@ -2,9 +2,10 @@ import type { ComponentPropsWithoutRef, MouseEvent } from 'react';
 import { forwardRef, useCallback, useEffect, useReducer, useRef, useState } from 'react';
 
 import './App.css';
-import type { CreateRecorderEvent } from './with-recorder-event';
-import { RecorderEvent, withRecorderEvents } from './with-recorder-event';
 import { RecorderEventsListener } from './recorder-events-listener';
+import type { CreateRecorderEvent, RecorderEvent } from './with-recorder-event';
+import { withRecorderEvents } from './with-recorder-event';
+import { RecorderEventsContext } from './recorder-events-context';
 
 type ButtonProps = ComponentPropsWithoutRef<'button'> & {
   createRecorderEvent?: CreateRecorderEvent;
@@ -127,41 +128,51 @@ function App() {
     recorderEvent.trigger();
   }, []);
 
-  // const handleRecorderEvents = (recorderEvent: RecorderEvent) => {
-  //   console.log('Listener', recorderEvent);
-  // };
+  const handleRecorderEvents = (recorderEvent: RecorderEvent) => {
+    console.log('Listener', recorderEvent);
+  };
 
-  return (
-    <div className="App">
-      <div className="card">
-        {/* <h1>Ticker: {tickerValue}</h1> */}
-        <AnalyticalButton onClick={handleIncrement} ref={buttonRef}>
-          count is {count}
-        </AnalyticalButton>
-        <AnalyticalButtonRegular onClick={handleAnalyticalEvent}>Regular</AnalyticalButtonRegular>
-      </div>
-    </div>
-  );
+  const eventContext = {
+    container: 'app',
+  };
 
   // return (
-  //   <RecorderEventsListener onEvent={handleRecorderEvents}>
-  //     <RecorderEventsListener onEvent={handleRecorderEvents}>
-  //       <RecorderEventsListener onEvent={handleRecorderEvents}>
-  //         <div className="App">
-  //           <div className="card">
-  //             {/* <h1>Ticker: {tickerValue}</h1> */}
-  //             <AnalyticalButton onClick={handleIncrement} ref={buttonRef}>
-  //               count is {count}
-  //             </AnalyticalButton>
-  //             <AnalyticalButtonRegular onClick={handleAnalyticalEvent}>
-  //               Regular
-  //             </AnalyticalButtonRegular>
-  //           </div>
-  //         </div>
-  //       </RecorderEventsListener>
-  //     </RecorderEventsListener>
-  //   </RecorderEventsListener>
+  //   <div className="App">
+  //     <div className="card">
+  //       {/* <h1>Ticker: {tickerValue}</h1> */}
+  //       <AnalyticalButton onClick={handleIncrement} ref={buttonRef}>
+  //         count is {count}
+  //       </AnalyticalButton>
+  //       <AnalyticalButtonRegular onClick={handleAnalyticalEvent}>Regular</AnalyticalButtonRegular>
+  //     </div>
+  //   </div>
   // );
+
+  return (
+    <RecorderEventsListener onEvent={handleRecorderEvents}>
+      <RecorderEventsListener onEvent={handleRecorderEvents}>
+        <RecorderEventsListener onEvent={handleRecorderEvents}>
+          <RecorderEventsContext value={eventContext}>
+            <RecorderEventsContext value={eventContext}>
+              <RecorderEventsContext value={{ containerPosition: 'center' }}>
+                <div className="App">
+                  <div className="card">
+                    {/* <h1>Ticker: {tickerValue}</h1> */}
+                    <AnalyticalButton onClick={handleIncrement} ref={buttonRef}>
+                      count is {count}
+                    </AnalyticalButton>
+                    <AnalyticalButtonRegular onClick={handleAnalyticalEvent}>
+                      Regular
+                    </AnalyticalButtonRegular>
+                  </div>
+                </div>
+              </RecorderEventsContext>
+            </RecorderEventsContext>
+          </RecorderEventsContext>
+        </RecorderEventsListener>
+      </RecorderEventsListener>
+    </RecorderEventsListener>
+  );
 }
 
 export default App;

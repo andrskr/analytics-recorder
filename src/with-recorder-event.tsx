@@ -10,13 +10,20 @@
 // onClick: (create, props) => create({ action: 'clicked', foo: props.foo })
 
 import type { RefAttributes, ComponentProps } from 'react';
-import React, { forwardRef, type ComponentType, useMemo, useState, useCallback } from 'react';
-import { RecorderEventListeners, useRecorderEventListeners } from './recorder-events-listener';
+import React, { forwardRef, type ComponentType, useState, useCallback } from 'react';
+
+import type { RecorderEventListeners } from './recorder-events-listener';
+import { useRecorderEventListeners } from './recorder-events-listener';
+import { RecorderEventContextValue, useEventsContext } from './recorder-events-context';
 
 export type CreateRecorderEvent = () => void;
 
 export class RecorderEvent {
-  constructor(public payload: RecorderEventPayload, private listeners?: RecorderEventListeners) {}
+  constructor(
+    public payload: RecorderEventPayload,
+    private listeners?: RecorderEventListeners,
+    public context?: Set<RecorderEventContextValue>,
+  ) {}
 
   trigger() {
     this.listeners?.emit(this);
@@ -83,12 +90,13 @@ function enhance_<TProps, TEnhanceKeys extends SupportedKeysToEnhance<TProps>>(
 
 function useCreateRecorderEvents() {
   const listeners = useRecorderEventListeners();
+  const eventsContext = useEventsContext();
 
   return useCallback(
     function createRecorderEvent(payload: RecorderEventPayload) {
-      return new RecorderEvent(payload, listeners);
+      return new RecorderEvent(payload, listeners, eventsContext?.context);
     },
-    [listeners],
+    [listeners, eventsContext],
   );
 }
 
