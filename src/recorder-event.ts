@@ -2,6 +2,7 @@ import type { GetContextValues } from './recorder-events-context';
 import type { GetRecorderEventHandlers } from './recorder-events-listener';
 
 export type RecorderEventPayload = Record<string, unknown>;
+export type Channel = '*' | string;
 
 export class RecorderEvent {
   constructor(
@@ -10,7 +11,7 @@ export class RecorderEvent {
     public getContext?: GetContextValues,
   ) {}
 
-  trigger() {
-    this.getListeners?.().forEach((currentHandler) => currentHandler(this));
+  trigger(channel?: Channel) {
+    this.getListeners?.().forEach((currentHandler) => currentHandler(this, channel));
   }
 }

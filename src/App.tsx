@@ -139,7 +139,7 @@ function App() {
   }, []);
 
   const handleAnalyticalEvent = useCallback((_: unknown, recorderEvent: RecorderEvent) => {
-    recorderEvent.trigger();
+    recorderEvent.trigger('testChannel');
   }, []);
 
   const handleRecorderEvents = useCallback((recorderEvent: RecorderEvent) => {
@@ -153,7 +153,7 @@ function App() {
   }, []);
 
   return (
-    <RecorderEventsListener onEvent={handleRecorderEvents}>
+    <RecorderEventsListener onEvent={handleRecorderEvents} channel="*">
       <RecorderEventsContext value={eventContext}>
         <div className="App">
           <div className="card">
