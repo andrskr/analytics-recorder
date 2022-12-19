@@ -7,11 +7,11 @@ export type Channel = '*' | string;
 export class RecorderEvent {
   constructor(
     public payload: RecorderEventPayload,
-    private getListeners?: GetRecorderEventHandlers,
-    public getContext?: GetContextValues,
+    private listeners?: ReturnType<GetRecorderEventHandlers>,
+    public context?: ReturnType<GetContextValues>,
   ) {}
 
   trigger(channel?: Channel) {
-    this.getListeners?.().forEach((currentHandler) => currentHandler(this, channel));
+    this.listeners?.forEach((currentHandler) => currentHandler(this, channel));
   }
 }

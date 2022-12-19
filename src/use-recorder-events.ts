@@ -11,7 +11,7 @@ export function useRecorderEvents() {
 
   return useCallback(
     function createRecorderEvent(payload: RecorderEventPayload) {
-      return new RecorderEvent(payload, getListeners, getContextValues);
+      return new RecorderEvent(payload, getListeners?.(), getContextValues?.());
     },
     [getListeners, getContextValues],
   );
