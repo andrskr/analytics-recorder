@@ -1,8 +1,10 @@
 import type { GetContextValues } from './recorder-events-context';
 import type { GetRecorderEventHandlers } from './recorder-events-listener';
 
+export const CATCH_ALL_CHANNEL = Symbol('catch-all');
+
 export type RecorderEventPayload = Record<string, unknown>;
-export type Channel = '*' | string;
+export type Channel = typeof CATCH_ALL_CHANNEL | string;
 
 export class RecorderEvent {
   constructor(

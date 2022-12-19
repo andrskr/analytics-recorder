@@ -2,6 +2,7 @@ import type { ReactNode } from 'react';
 import { createContext, useCallback, useContext } from 'react';
 
 import type { Channel, RecorderEvent } from './recorder-event';
+import { CATCH_ALL_CHANNEL } from './recorder-event';
 
 type RecorderEventHandler = (recorderEvent: RecorderEvent) => void;
 type ChannelAwareEventHandler = (recorderEvent: RecorderEvent, channel?: Channel) => void;
@@ -32,7 +33,7 @@ export function RecorderEventsListener({
 
   const getListeners = useCallback(() => {
     const actualEventHandler = (recorderEvent: RecorderEvent, eventChannel?: Channel) => {
-      if (channel === '*' || channel === eventChannel) {
+      if (channel === CATCH_ALL_CHANNEL || channel === eventChannel) {
         onEvent(recorderEvent);
       }
     };

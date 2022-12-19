@@ -3,9 +3,9 @@ import { forwardRef, useCallback, useEffect, useMemo, useReducer, useRef, useSta
 
 import './App.css';
 import type { RecorderEvent } from './recorder-event';
+import { CATCH_ALL_CHANNEL } from './recorder-event';
 import { RecorderEventsContext } from './recorder-events-context';
 import { RecorderEventsListener } from './recorder-events-listener';
-import type { RecorderEvents } from './use-recorder-events';
 import { useRecorderEventsCallback } from './use-recorder-events-callback';
 import { withEventsContext } from './with-events-context';
 import { withRecorderEvents } from './with-recorder-events';
@@ -153,7 +153,7 @@ function App() {
   }, []);
 
   return (
-    <RecorderEventsListener onEvent={handleRecorderEvents} channel="*">
+    <RecorderEventsListener onEvent={handleRecorderEvents} channel={CATCH_ALL_CHANNEL}>
       <RecorderEventsContext value={eventContext}>
         <div className="App">
           <div className="card">
