@@ -14,4 +14,17 @@ export class RecorderEvent {
   trigger(channel?: Channel) {
     this.listeners?.forEach((currentHandler) => currentHandler(this, channel));
   }
+
+  update(next: RecorderEventPayload | ((previous: RecorderEventPayload) => RecorderEventPayload)) {
+    if (typeof next === 'function') {
+      this.payload = next(this.payload);
+    } else {
+      this.payload = {
+        ...this.payload,
+        ...next,
+      };
+    }
+
+    return this;
+  }
 }
