@@ -1,10 +1,12 @@
-import type { ComponentPropsWithoutRef } from 'react';
+import type { ComponentPropsWithoutRef, MouseEvent } from 'react';
 import { forwardRef, useCallback, useEffect, useMemo, useReducer, useRef, useState } from 'react';
 
 import './App.css';
 import type { RecorderEvent } from './recorder-event';
 import { RecorderEventsContext } from './recorder-events-context';
 import { RecorderEventsListener } from './recorder-events-listener';
+import type { RecorderEvents } from './use-recorder-events';
+import { useRecorderEventsCallback } from './use-recorder-events-callback';
 import { withEventsContext } from './with-events-context';
 import { withRecorderEvents } from './with-recorder-events';
 
@@ -21,6 +23,20 @@ const ForwardedButton = forwardRef<HTMLButtonElement, ButtonProps>(function Butt
 
 function RegularButton({ createRecorderEvent: _, ...props }: ButtonProps) {
   return <button type="button" {...props} />;
+}
+
+type ClickableBlockProps = {
+  onClick: (event: MouseEvent<HTMLDivElement>, recorderEvent: RecorderEvent) => void;
+};
+
+function ClickableBlock({ onClick }: ClickableBlockProps) {
+  const handleClick = useRecorderEventsCallback(
+    onClick,
+    useMemo(() => ({ action: 'click', element: 'clickableBlock' }), []),
+  );
+
+  // eslint-disable-next-line jsx-a11y/click-events-have-key-events,jsx-a11y/no-static-element-interactions
+  return <div onClick={handleClick}>Click me</div>;
 }
 
 const AnalyticalButton = withRecorderEvents(ForwardedButton, {
@@ -132,6 +148,10 @@ function App() {
 
   const eventContext = useMemo(() => ({ container: 'app' }), []);
 
+  const clickableBlockHandler = useCallback((_, recorderEvent: RecorderEvent) => {
+    console.log('useRecorderEventsCallback', recorderEvent);
+  }, []);
+
   return (
     <RecorderEventsListener onEvent={handleRecorderEvents}>
       <RecorderEventsContext value={eventContext}>
@@ -147,6 +167,7 @@ function App() {
             <ContextualAnalyticalButton onClick={handleAnalyticalEvent}>
               Contextual
             </ContextualAnalyticalButton>
+            <ClickableBlock onClick={clickableBlockHandler} />
           </div>
         </div>
       </RecorderEventsContext>
