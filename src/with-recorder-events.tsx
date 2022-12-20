@@ -1,7 +1,9 @@
 import type { RefAttributes, ComponentProps } from 'react';
 import { forwardRef, type ComponentType, useState } from 'react';
 
-import type { RecorderEventPayload, RecorderEvent } from './recorder-event';
+import type { AutoTriggerEvents } from './auto-trigger';
+import { isAutoTriggered } from './auto-trigger';
+import type { RecorderEventPayload, RecorderEvent, Channel } from './recorder-event';
 import type { RecorderEvents } from './use-recorder-events';
 import { useRecorderEvents } from './use-recorder-events';
 
@@ -27,48 +29,57 @@ type AddRecorderEventIfFunction<T> = T extends AnyFunction
   ? AddParams<T, [recorderEvent: RecorderEvent]>
   : T;
 
-type GetEnhancedProps<TProps, TEnhanceKeys extends SupportedKeysToEnhance<TProps>> = {
-  [TEnhancerName in TEnhanceKeys]: AddRecorderEventIfFunction<TProps[TEnhancerName]>;
+type GetEnhancedProps<TProps, TEventName extends keyof TProps> = {
+  [TEnhancerName in TEventName]: AddRecorderEventIfFunction<TProps[TEnhancerName]>;
 };
 
 function createPropsEnhancer(createRecorderEvent: RecorderEvents) {
   const enhancedProps = new WeakMap();
 
-  return function enhance<TProps, TEnhanceKeys extends SupportedKeysToEnhance<TProps>>(
+  return function enhance<TProps, TEventName extends keyof TProps>(
     props: TProps,
-    enhancers: Record<TEnhanceKeys, EnhancerHandler<TProps>>,
+    options: EventEnhancerOptions<TProps, TEventName>,
   ) {
-    return Object.keys(enhancers).reduce((acc, currentEnhancerName) => {
-      const propsValue = props[currentEnhancerName as TEnhanceKeys];
+    return Object.keys(options.events).reduce((acc, currentEnhancerName) => {
+      const propsValue = props[currentEnhancerName as TEventName];
 
       if (typeof propsValue !== 'function') {
         return acc;
       }
 
       if (enhancedProps.has(propsValue)) {
-        acc[currentEnhancerName as TEnhanceKeys] = enhancedProps.get(propsValue);
+        acc[currentEnhancerName as TEventName] = enhancedProps.get(propsValue);
 
         return acc;
       }
 
       const enhancedProp = new Proxy(propsValue, {
         apply(targetFn, thisArg, argArray) {
-          const currentEnhancerHandler = enhancers[currentEnhancerName as TEnhanceKeys];
+          const currentEnhancerHandler = options.events[currentEnhancerName as TEventName];
 
           const recorderEvent =
             typeof currentEnhancerHandler === 'function'
               ? currentEnhancerHandler(createRecorderEvent, props)
               : createRecorderEvent(currentEnhancerHandler);
 
+          const autoTrigger = isAutoTriggered(
+            currentEnhancerName as TEventName,
+            options.autoTrigger as AutoTriggerEvents<TEventName>,
+          );
+
+          if (autoTrigger) {
+            recorderEvent.trigger(options.channel);
+          }
+
           return Reflect.apply(targetFn, thisArg, [...argArray, recorderEvent]);
         },
       }) as AddRecorderEventIfFunction<typeof propsValue>;
 
       enhancedProps.set(propsValue, enhancedProp);
-      acc[currentEnhancerName as TEnhanceKeys] = enhancedProp;
+      acc[currentEnhancerName as TEventName] = enhancedProp;
 
       return acc;
-    }, {} as GetEnhancedProps<TProps, TEnhanceKeys>);
+    }, {} as GetEnhancedProps<TProps, TEventName>);
   };
 }
 
@@ -78,26 +89,31 @@ function usePropsEnhancer(createRecorderEvent: RecorderEvents) {
   return enhance;
 }
 
-function useRecorderEnhanceProps<
-  TProps,
-  TEnhanceKeys extends SupportedKeysToEnhance<TProps> = never,
->(
+function useRecorderEnhanceProps<TProps, TEventName extends keyof TProps>(
   createRecorderEvent: RecorderEvents,
   props: TProps,
-  enhancers?: Record<TEnhanceKeys, EnhancerHandler<TProps>>,
+  options?: EventEnhancerOptions<TProps, TEventName>,
 ) {
   const enhance = usePropsEnhancer(createRecorderEvent);
 
-  return typeof enhancers !== 'undefined' && enhance(props, enhancers);
+  return typeof options?.events !== 'undefined' && enhance(props, options);
 }
+
+type CreateEventEnhancerOptions<TEvents> = TEvents extends infer TInferred
+  ? { events: TEvents; autoTrigger?: AutoTriggerEvents<keyof TInferred>; channel?: Channel }
+  : never;
+
+type EventEnhancerOptions<TProps, TEventName extends keyof TProps> = CreateEventEnhancerOptions<
+  Record<TEventName, EnhancerHandler<TProps>>
+>;
 
 export function withRecorderEvents<
   TProps,
-  TEnhanceKeys extends SupportedKeysToEnhance<TProps> = never,
+  TEventName extends SupportedKeysToEnhance<TProps> = never,
   TRef = never,
 >(
   WrappedComponent: ComponentType<TProps & RefAttributes<TRef>>,
-  enhancers?: Record<TEnhanceKeys, EnhancerHandler<TProps>>,
+  options?: EventEnhancerOptions<TProps, TEventName>,
 ) {
   const displayName = WrappedComponent.displayName || WrappedComponent.name || 'Component';
 
@@ -105,12 +121,12 @@ export function withRecorderEvents<
     TRef,
     Omit<
       ComponentProps<typeof WrappedComponent>,
-      keyof WithRecorderEventsInjectedProps | TEnhanceKeys
+      keyof WithRecorderEventsInjectedProps | TEventName
     > &
-      GetEnhancedProps<TProps, TEnhanceKeys>
+      GetEnhancedProps<TProps, TEventName>
   >(function Wrapper(props, ref) {
     const createRecorderEvent = useRecorderEvents();
-    const enhancedProps = useRecorderEnhanceProps(createRecorderEvent, props as TProps, enhancers);
+    const enhancedProps = useRecorderEnhanceProps(createRecorderEvent, props as TProps, options);
 
     return (
       <WrappedComponent

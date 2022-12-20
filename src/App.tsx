@@ -40,13 +40,24 @@ function ClickableBlock({ onClick }: ClickableBlockProps) {
 }
 
 const AnalyticalButton = withRecorderEvents(ForwardedButton, {
-  onClick: {
-    action: 'click',
-    type: 'forwarded',
+  events: {
+    onClick: {
+      action: 'click',
+      type: 'forwarded',
+    },
+    onMouseOut: {
+      action: 'mouseOut',
+    },
+  },
+  autoTrigger: {
+    exclude: new Set(['onClick'] as const),
+    // include: new Set(['onClick'] as const),
   },
 });
 const AnalyticalButtonRegular = withRecorderEvents(RegularButton, {
-  onClick: (create) => create({ action: 'click', type: 'regular' }),
+  events: {
+    onClick: (create) => create({ action: 'click', type: 'regular' }),
+  },
 });
 const ContextualAnalyticalButton = withEventsContext({ withEventsContext: true })(AnalyticalButton);
 
@@ -133,13 +144,12 @@ function App() {
   const buttonRef = useRef<HTMLButtonElement>(null);
   // const { current: tickerValue } = useTicker(1000);
 
-  const handleIncrement = useCallback((_: unknown, recorderEvent: RecorderEvent) => {
-    console.log(recorderEvent);
+  const handleIncrement = useCallback(() => {
     setCount((c) => c + 1);
   }, []);
 
   const handleAnalyticalEvent = useCallback((_: unknown, recorderEvent: RecorderEvent) => {
-    recorderEvent.trigger('testChannel');
+    console.log('Log Event', recorderEvent);
   }, []);
 
   const handleRecorderEvents = useCallback((recorderEvent: RecorderEvent) => {
@@ -158,7 +168,11 @@ function App() {
         <div className="App">
           <div className="card">
             {/* <h1>Ticker: {tickerValue}</h1> */}
-            <AnalyticalButton onClick={handleIncrement} ref={buttonRef}>
+            <AnalyticalButton
+              onClick={handleIncrement}
+              ref={buttonRef}
+              onMouseOut={handleAnalyticalEvent}
+            >
               count is {count}
             </AnalyticalButton>
             <AnalyticalButtonRegular onClick={handleAnalyticalEvent}>
