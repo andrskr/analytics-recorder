@@ -1,5 +1,5 @@
 import type { RefAttributes, ComponentProps } from 'react';
-import { forwardRef, type ComponentType, useState } from 'react';
+import { forwardRef, type ComponentType, useState, useMemo } from 'react';
 
 import type { AutoTriggerEvents } from './auto-trigger';
 import { isAutoTriggered } from './auto-trigger';
@@ -13,6 +13,7 @@ type WithRecorderEventsInjectedProps = {
 
 type RecorderEventCallback<TProps> = (create: RecorderEvents, props: TProps) => RecorderEvent;
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 type AnyFunction = (...args: any[]) => any;
 
 type ExtractKeysByValue<T, TExtract> = {
@@ -96,7 +97,13 @@ function useRecorderEnhanceProps<TProps, TEventName extends keyof TProps>(
 ) {
   const enhance = usePropsEnhancer(createRecorderEvent);
 
-  return typeof options?.events !== 'undefined' && enhance(props, options);
+  return useMemo(() => {
+    if (typeof options?.events === 'undefined') {
+      return undefined;
+    }
+
+    return enhance(props, options);
+  }, [enhance, options, props]);
 }
 
 type CreateEventEnhancerOptions<TEvents> = TEvents extends infer TInferred

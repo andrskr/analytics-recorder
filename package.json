@@ -3,6 +3,15 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
+  "files": ["dist", "src/lib"],
+  "main": "./dist/analytics-recorder.umd.cjs",
+  "module": "./dist/analytics-recorder.js",
+  "exports": {
+    ".": {
+      "import": "./dist/analytics-recorder.js",
+      "require": "./dist/analytics-recorder.umd.cjs"
+    }
+  },
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
@@ -25,6 +34,7 @@
     "react-dom": "^18.2.0"
   },
   "devDependencies": {
+    "@types/node": "18.11.17",
     "@types/react": "^18.0.26",
     "@types/react-dom": "^18.0.9",
     "@typescript-eslint/eslint-plugin": "5.46.1",
@@ -49,6 +59,7 @@
     "npm-run-all": "4.1.5",
     "prettier": "2.8.1",
     "typescript": "^4.9.4",
-    "vite": "^4.0.1"
+    "vite": "^4.0.1",
+    "vite-plugin-dts": "1.7.1"
   }
 }
