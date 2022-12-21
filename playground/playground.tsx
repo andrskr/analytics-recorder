@@ -1,7 +1,7 @@
 import type { ComponentPropsWithoutRef, MouseEvent } from 'react';
-import { forwardRef, useCallback, useEffect, useMemo, useReducer, useRef, useState } from 'react';
+import { forwardRef, useCallback, useMemo, useRef, useState } from 'react';
 
-import type { RecorderEvent } from './lib';
+import type { RecorderEvent } from '../src';
 import {
   CATCH_ALL_CHANNEL,
   RecorderEventsContext,
@@ -9,7 +9,7 @@ import {
   useRecorderEventsCallback,
   withEventsContext,
   withRecorderEvents,
-} from './lib';
+} from '../src';
 
 type ButtonProps = ComponentPropsWithoutRef<'button'> & {
   createRecorderEvent: RecorderEvent;
@@ -62,88 +62,9 @@ const AnalyticalButtonRegular = withRecorderEvents(RegularButton, {
 });
 const ContextualAnalyticalButton = withEventsContext({ withEventsContext: true })(AnalyticalButton);
 
-function createTicker(ms: number) {
-  const ticker = {
-    timer: null,
-    subscribers: new Set(),
-    state: {
-      current: 0,
-    },
-    setState: (updater) => {
-      ticker.state = updater(ticker.state);
-      for (const currentSubscriber of ticker.subscribers.values()) {
-        currentSubscriber.notify();
-      }
-    },
-    subscribe: (subscriber) => {
-      ticker.subscribers.add(subscriber);
-
-      return () => {
-        ticker.subscribers.delete(subscriber);
-      };
-    },
-    run: () => {
-      if (ticker.timer) {
-        clearInterval(ticker.timer);
-      }
-
-      ticker.timer = setInterval(
-        () => ticker.setState((prev) => ({ ...prev, current: prev.current + 1 })),
-        ms,
-      );
-    },
-  };
-
-  return ticker;
-}
-
-function createTickerObserver(ms: number) {
-  const ticker = createTicker(ms);
-
-  const observer = {
-    run: () => {
-      ticker.run();
-    },
-    notify: () => {},
-    subscribe: (subscriber) => {
-      observer.notify = subscriber;
-
-      const dispose = ticker.subscribe(observer);
-
-      observer.run();
-
-      return () => {
-        dispose();
-        observer.notify = () => {};
-      };
-    },
-    getState: () => ticker.state,
-  };
-
-  return observer;
-}
-
-type Observer = ReturnType<typeof createTickerObserver>;
-
-function useTicker(ms: number) {
-  const tickerRef = useRef<Observer>();
-  const [_, rerender] = useReducer((state) => state + 1, 0);
-
-  if (!tickerRef.current) {
-    tickerRef.current = createTickerObserver(ms);
-  }
-
-  useEffect(() => {
-    return tickerRef.current!.subscribe(rerender);
-  }, [rerender]);
-
-  return tickerRef.current.getState();
-}
-
 export function Playground() {
   const [count, setCount] = useState(0);
   const buttonRef = useRef<HTMLButtonElement>(null);
-  // const { current: tickerValue } = useTicker(1000);
 
   const handleIncrement = useCallback(() => {
     setCount((c) => c + 1);
@@ -159,7 +80,7 @@ export function Playground() {
 
   const eventContext = useMemo(() => ({ container: 'app' }), []);
 
-  const clickableBlockHandler = useCallback((_, recorderEvent: RecorderEvent) => {
+  const clickableBlockHandler = useCallback((_: unknown, recorderEvent: RecorderEvent) => {
     console.log('useRecorderEventsCallback', recorderEvent);
   }, []);
 

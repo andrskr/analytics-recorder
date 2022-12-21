@@ -6,18 +6,26 @@ import { resolve } from 'node:path';
 
 // https://vitejs.dev/config/
 export default defineConfig({
-  plugins: [react(), dts()],
+  plugins: [
+    react({
+      jsxRuntime: 'classic',
+    }),
+    dts(),
+  ],
+  // define: {
+  //   'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV),
+  // },
   build: {
     sourcemap: true,
-    // leave minification up to consumer applications
-    minify: false,
+    // leave minification up to consumer applications?
+    minify: true,
     lib: {
-      entry: resolve(__dirname, 'lib/index.ts'),
+      entry: resolve(__dirname, 'src/index.ts'),
       name: 'AnalyticsRecorder',
       fileName: 'analytics-recorder',
     },
     rollupOptions: {
-      external: ['React'],
+      external: ['react'],
       output: {
         globals: {
           react: 'React',

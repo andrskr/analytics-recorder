@@ -3,7 +3,9 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
-  "files": ["dist", "src/lib"],
+  "files": [
+    "dist"
+  ],
   "main": "./dist/analytics-recorder.umd.cjs",
   "module": "./dist/analytics-recorder.js",
   "exports": {

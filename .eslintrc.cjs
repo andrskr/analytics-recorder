@@ -1,5 +1,5 @@
 module.exports = {
-  ignorePatterns: ['node_modules', 'dist', 'coverage', '**/*.d.ts'],
+  ignorePatterns: ['node_modules', 'dist', 'coverage', 'playground', '**/*.d.ts'],
   plugins: ['import', 'sonarjs', 'react', 'react-hooks', 'jsx-a11y', 'prettier'],
   extends: [
     'eslint:recommended',

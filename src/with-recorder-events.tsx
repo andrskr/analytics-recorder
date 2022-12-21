@@ -1,5 +1,5 @@
-import type { RefAttributes, ComponentProps } from 'react';
-import { forwardRef, type ComponentType, useState, useMemo } from 'react';
+import type { RefAttributes, ComponentProps, ComponentType } from 'react';
+import { forwardRef, useState, useMemo } from 'react';
 
 import type { AutoTriggerEvents } from './auto-trigger';
 import { isAutoTriggered } from './auto-trigger';
