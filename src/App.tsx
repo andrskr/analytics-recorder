@@ -49,10 +49,10 @@ const AnalyticalButton = withRecorderEvents(ForwardedButton, {
       action: 'mouseOut',
     },
   },
-  autoTrigger: {
-    exclude: new Set(['onClick'] as const),
-    // include: new Set(['onClick'] as const),
-  },
+  // autoTrigger: {
+  //   // exclude: new Set(['onClick'] as const),
+  //   // include: new Set(['onClick'] as const),
+  // },
 });
 const AnalyticalButtonRegular = withRecorderEvents(RegularButton, {
   events: {

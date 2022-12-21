@@ -55,8 +55,12 @@ function shouldTriggerIfExclude<TEventName>(
 
 export function isAutoTriggered<TEventName>(
   eventName: TEventName,
-  autoTriggerOption: AutoTriggerEvents<TEventName> = true,
+  autoTriggerOption?: AutoTriggerEvents<TEventName>,
 ) {
+  if (typeof autoTriggerOption === 'undefined') {
+    return false;
+  }
+
   if (isAutoTriggerToggleOption(autoTriggerOption)) {
     return autoTriggerOption;
   }
