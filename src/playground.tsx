@@ -1,14 +1,15 @@
 import type { ComponentPropsWithoutRef, MouseEvent } from 'react';
 import { forwardRef, useCallback, useEffect, useMemo, useReducer, useRef, useState } from 'react';
 
-import './App.css';
-import type { RecorderEvent } from './recorder-event';
-import { CATCH_ALL_CHANNEL } from './recorder-event';
-import { RecorderEventsContext } from './recorder-events-context';
-import { RecorderEventsListener } from './recorder-events-listener';
-import { useRecorderEventsCallback } from './use-recorder-events-callback';
-import { withEventsContext } from './with-events-context';
-import { withRecorderEvents } from './with-recorder-events';
+import type { RecorderEvent } from './lib';
+import {
+  CATCH_ALL_CHANNEL,
+  RecorderEventsContext,
+  RecorderEventsListener,
+  useRecorderEventsCallback,
+  withEventsContext,
+  withRecorderEvents,
+} from './lib';
 
 type ButtonProps = ComponentPropsWithoutRef<'button'> & {
   createRecorderEvent: RecorderEvent;
@@ -139,7 +140,7 @@ function useTicker(ms: number) {
   return tickerRef.current.getState();
 }
 
-function App() {
+export function Playground() {
   const [count, setCount] = useState(0);
   const buttonRef = useRef<HTMLButtonElement>(null);
   // const { current: tickerValue } = useTicker(1000);
@@ -188,5 +189,3 @@ function App() {
     </RecorderEventsListener>
   );
 }
-
-export default App;
