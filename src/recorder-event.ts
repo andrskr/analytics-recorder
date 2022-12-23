@@ -1,15 +1,14 @@
 import type { GetContextValues } from './recorder-events-context';
-import type { GetRecorderEventHandlers } from './recorder-events-listener';
-
-export const CATCH_ALL_CHANNEL = Symbol('catch-all');
+import type { Channel, useHandlersRegistry } from './recorder-events-listener';
 
 export type RecorderEventPayload = Record<string, unknown>;
-export type Channel = typeof CATCH_ALL_CHANNEL | string;
+
+type EventHandlers = NonNullable<ReturnType<typeof useHandlersRegistry>>['handlers'];
 
 export class RecorderEvent {
   constructor(
     public payload: RecorderEventPayload,
-    private listeners?: ReturnType<GetRecorderEventHandlers>,
+    private listeners?: EventHandlers,
     public context?: ReturnType<GetContextValues>,
   ) {}
 
