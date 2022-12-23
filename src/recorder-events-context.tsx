@@ -1,5 +1,5 @@
-import type { ReactNode } from 'react';
-import { createContext, useCallback, useContext } from 'react';
+import type { MutableRefObject, ReactNode } from 'react';
+import { createContext, useContext, useLayoutEffect, useRef } from 'react';
 
 export type ContextValue = Record<string, unknown>;
 
@@ -10,25 +10,34 @@ type RecorderEventsContextProps = {
 
 export type GetContextValues = () => ContextValue[];
 
-const Context = createContext<GetContextValues | undefined>(undefined);
-Context.displayName = 'RecorderEventsContext';
+const GetContextValuesContext = createContext<
+  MutableRefObject<GetContextValues | undefined> | undefined
+>(undefined);
+GetContextValuesContext.displayName = 'GetContextValuesContext';
 
 export function useGetContextValues() {
-  return useContext(Context);
+  return useContext(GetContextValuesContext);
 }
 
 export function RecorderEventsContext({ value, children }: RecorderEventsContextProps) {
-  const parentValuesGetter = useGetContextValues();
+  const getValuesRef = useRef<GetContextValues>();
+  const parentGetValues = useGetContextValues();
 
-  const getListeners = useCallback(() => {
-    if (typeof parentValuesGetter === 'function') {
-      const parentValues = parentValuesGetter();
+  useLayoutEffect(() => {
+    getValuesRef.current = () => {
+      if (typeof parentGetValues?.current === 'function') {
+        const parentValues = parentGetValues.current();
 
-      return [...parentValues, value];
-    }
+        return [...parentValues, value];
+      }
 
-    return [value];
-  }, [value, parentValuesGetter]);
+      return [value];
+    };
+  }, [parentGetValues, value]);
 
-  return <Context.Provider value={getListeners}>{children}</Context.Provider>;
+  return (
+    <GetContextValuesContext.Provider value={getValuesRef}>
+      {children}
+    </GetContextValuesContext.Provider>
+  );
 }

@@ -84,6 +84,11 @@ export function Playground() {
     console.log('useRecorderEventsCallback', recorderEvent);
   }, []);
 
+  const handleAndTrigger = useCallback((_: unknown, recorderEvent: RecorderEvent) => {
+    console.log('Handle Event, then trigger', recorderEvent);
+    recorderEvent.trigger();
+  }, []);
+
   return (
     <RecorderEventsListener onEvent={handleRecorderEvents} channel={CATCH_ALL_CHANNEL}>
       <RecorderEventsContext value={eventContext}>
@@ -100,9 +105,11 @@ export function Playground() {
             <AnalyticalButtonRegular onClick={handleAnalyticalEvent}>
               Regular
             </AnalyticalButtonRegular>
-            <ContextualAnalyticalButton onClick={handleAnalyticalEvent}>
-              Contextual
-            </ContextualAnalyticalButton>
+            <RecorderEventsListener onEvent={handleRecorderEvents}>
+              <ContextualAnalyticalButton onClick={handleAndTrigger}>
+                Contextual
+              </ContextualAnalyticalButton>
+            </RecorderEventsListener>
             <ClickableBlock onClick={clickableBlockHandler} />
           </div>
         </div>

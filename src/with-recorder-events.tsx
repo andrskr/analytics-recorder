@@ -3,7 +3,8 @@ import { forwardRef, useState, useMemo } from 'react';
 
 import type { AutoTriggerEvents } from './auto-trigger';
 import { isAutoTriggered } from './auto-trigger';
-import type { RecorderEventPayload, RecorderEvent, Channel } from './recorder-event';
+import type { RecorderEventPayload, RecorderEvent } from './recorder-event';
+import type { Channel } from './recorder-events-listener';
 import type { RecorderEvents } from './use-recorder-events';
 import { useRecorderEvents } from './use-recorder-events';
 
