@@ -15,6 +15,9 @@
     }
   },
   "packageManager": "pnpm@7.20.0",
+  "publishConfig": {
+    "access": "public"
+  },
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
