@@ -1,3 +1,5 @@
+/// <reference types="vitest" />
+
 import react from '@vitejs/plugin-react';
 import { defineConfig } from 'vite';
 import dts from 'vite-plugin-dts';
@@ -31,6 +33,21 @@ export default defineConfig({
           react: 'React',
         },
       },
+    },
+  },
+  test: {
+    mockReset: true,
+    environment: 'happy-dom',
+    setupFiles: './src/tests/setup.ts',
+    coverage: {
+      clean: true,
+      all: true,
+      include: ['src/**/*.ts?(x)'],
+      exclude: ['src/tests/**/*'],
+      lines: 75,
+      functions: 75,
+      branches: 75,
+      statements: 75,
     },
   },
 });

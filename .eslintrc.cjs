@@ -91,6 +91,7 @@ module.exports = {
           {
             devDependencies: [
               'vite.config.ts',
+              '**/**/tests/*',
               '**/__tests__/**/*.ts?(x)',
               '**/?(*.)+(spec|test).ts?(x)',
             ],
@@ -100,11 +101,8 @@ module.exports = {
     },
     {
       files: ['**/__tests__/**/*.ts?(x)', '**/?(*.)+(spec|test).ts?(x)'],
-      env: {
-        'jest/globals': true,
-      },
-      plugins: ['jest', 'testing-library'],
-      extends: ['plugin:jest/recommended', 'plugin:testing-library/react'],
+      plugins: ['testing-library'],
+      extends: ['plugin:testing-library/react'],
     },
   ],
   rules: {
