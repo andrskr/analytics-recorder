@@ -1,13 +1,31 @@
 {
   "name": "analytics-recorder",
-  "private": true,
   "version": "0.0.0",
+  "description": "Performant, lightweight and typesafe solution for tracking user behavior in real-time using React Components and Hooks",
+  "author": "Andrii Skrebets <andriiskrebets@gmail.com>",
+  "license": "MIT",
+  "keywords": [
+    "react",
+    "hooks",
+    "user-tracking",
+    "analytics",
+    "metrics",
+    "typescript",
+    "react-hooks"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/andskr/analytics-recorder.git"
+  },
   "type": "module",
+  "sideEffects": false,
   "files": [
     "dist"
   ],
+  "source": "src/index.ts",
   "main": "./dist/analytics-recorder.umd.cjs",
   "module": "./dist/analytics-recorder.js",
+  "types": "./dist/analytics-recorder.d.ts",
   "exports": {
     ".": {
       "import": "./dist/analytics-recorder.js",
@@ -77,5 +95,9 @@
     "vite": "^4.0.1",
     "vite-plugin-dts": "1.7.1",
     "vitest": "0.26.2"
+  },
+  "peerDependencies": {
+    "react": "^17.0.0 || ^18.0.0",
+    "react-dom": "^17.0.0 || ^18.0.0"
   }
 }
