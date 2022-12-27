@@ -1,0 +1,10 @@
+# This is a comment. Lines that start with a # are ignored.
+
+# Each line in the file specifies a pattern followed by one or more username or team names.
+# The pattern is used to match file or directory paths in the repository.
+# If a path matches a pattern, the owners listed on the line are responsible for reviewing and approving changes to the path.
+
+# In this case, we are specifying a wildcard pattern that matches all files and directories in the repository.
+# This means that the specified owner(s) will be responsible for reviewing and approving changes to all files and directories.
+
+* @andskr
