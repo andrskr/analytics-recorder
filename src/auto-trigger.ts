@@ -73,5 +73,5 @@ export function isAutoTriggered<TEventName>(
     return shouldTriggerIfExclude(eventName, autoTriggerOption);
   }
 
-  return false;
+  throw new Error(`unsupported autoTrigger option ${autoTriggerOption}`);
 }

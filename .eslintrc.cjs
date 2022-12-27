@@ -103,6 +103,10 @@ module.exports = {
       files: ['**/__tests__/**/*.ts?(x)', '**/?(*.)+(spec|test).ts?(x)'],
       plugins: ['testing-library'],
       extends: ['plugin:testing-library/react'],
+      rules: {
+        '@typescript-eslint/ban-ts-comment': 'off',
+        '@typescript-eslint/no-explicit-any': 'off',
+      },
     },
   ],
   rules: {
