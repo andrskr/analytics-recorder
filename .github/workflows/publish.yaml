@@ -1,0 +1,30 @@
+name: 🚀 Publish NPM package
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  release:
+    timeout-minutes: 15
+    runs-on: ubuntu-latest
+    steps:
+      - name: ⬇️ Checkout
+        uses: actions/checkout@v3
+
+      - name: 🚧 Setup PNPM
+        uses: ./.github/actions/setup-pnpm
+
+      - name: 📝 Setup NPMRC
+        run: echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}" > .npmrc
+
+      - name: 📑 Create and publish version
+        uses: changesets/action@v1
+        with:
+          version: pnpm ci:version
+          commit: 'chore: update version'
+          title: 'chore: update version'
+          publish: pnpm ci:publish
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

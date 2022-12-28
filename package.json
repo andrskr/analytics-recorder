@@ -1,6 +1,6 @@
 {
   "name": "analytics-recorder",
-  "version": "1.0.0",
+  "version": "0.0.0",
   "description": "Performant, lightweight and typesafe solution for tracking user behavior in real-time using React Components and Hooks",
   "author": "Andrii Skrebets <andriiskrebets@gmail.com>",
   "license": "MIT",
@@ -54,6 +54,8 @@
     "test:debug": "vitest --watch --threads false",
     "typecheck": "tsc",
     "validate": "npm-run-all --parallel lint:check format:check typecheck",
+    "ci:version": "pnpm changeset version && pnpm install --no-frozen-lockfile && git add .",
+    "ci:publish": "pnpm build && git status && pnpm publish && pnpm changeset tag",
     "prepare": "is-ci || husky install"
   },
   "dependencies": {
