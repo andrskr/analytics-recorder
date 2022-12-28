@@ -54,8 +54,8 @@
     "test:debug": "vitest --watch --threads false",
     "typecheck": "tsc",
     "validate": "npm-run-all --parallel lint:check format:check typecheck",
-    "ci:version": "pnpm changeset version && pnpm install --no-frozen-lockfile && git add .",
-    "ci:publish": "pnpm build && git status && pnpm publish && pnpm changeset tag",
+    "ci:version": "pnpm changeset version && pnpm install --no-frozen-lockfile",
+    "ci:publish": "pnpm build && pnpm publish && pnpm changeset tag",
     "prepare": "is-ci || husky install"
   },
   "dependencies": {
