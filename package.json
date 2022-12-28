@@ -38,7 +38,7 @@
   },
   "scripts": {
     "dev": "vite",
-    "build": "tsc && vite build",
+    "build": "pnpm typecheck && vite build",
     "preview": "vite preview",
     "clean": "rm -rf node_modules dist",
     "format": "prettier --ignore-unknown",

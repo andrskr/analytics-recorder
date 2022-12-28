@@ -12,7 +12,7 @@ export default defineConfig({
     react({
       jsxRuntime: 'classic',
     }),
-    dts(),
+    dts({ insertTypesEntry: true }),
   ],
   // define: {
   //   'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV),
