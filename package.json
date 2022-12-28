@@ -1,6 +1,6 @@
 {
   "name": "analytics-recorder",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Performant, lightweight and typesafe solution for tracking user behavior in real-time using React Components and Hooks",
   "author": "Andrii Skrebets <andriiskrebets@gmail.com>",
   "license": "MIT",
